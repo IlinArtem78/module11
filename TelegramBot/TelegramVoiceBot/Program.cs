@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text;
 using Telegram.Bot;
+using TelegramVoiceBot.Controllers;
 
 
 
@@ -29,7 +30,13 @@ namespace TelegramVoiceBot
         }
 
         static void ConfigureServices(IServiceCollection services)
+
         {
+            // Подключаем контроллеры сообщений и кнопок
+            services.AddTransient<DefaultMessageController>();
+            services.AddTransient<VoiceMessageControlller>();
+            services.AddTransient<TextMessageController>();
+            services.AddTransient<InlineKeyboardController>();
             // Регистрируем объект TelegramBotClient c токеном подключения
             services.AddSingleton<ITelegramBotClient>(provider => new TelegramBotClient("7408197128:AAFtQ7bmx-G_F5GvBpn_XGAelq0Svqncs8g"));
             // Регистрируем постоянно активный сервис бота
