@@ -3,7 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text;
 using Telegram.Bot;
-
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 
 namespace UtilityBot
@@ -29,6 +32,8 @@ namespace UtilityBot
 
         static void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<TextMessageController>();
+            services.AddSingleton<InlineKeyboardController>();
             // Регистрируем объект TelegramBotClient c токеном подключения
             services.AddSingleton<ITelegramBotClient>(provider => new TelegramBotClient("7129815186:AAFKbLdFcSs1AZBJ5jzn6ITLlTGZ499FQ8o"));
             // Регистрируем постоянно активный сервис бота
@@ -36,3 +41,7 @@ namespace UtilityBot
         }
     }
 }
+
+
+
+

@@ -28,8 +28,11 @@ namespace TelegramVoiceBot.Configuration
         /////
         public string OutputAudioFormat { get; set; }   
         ///
-        public int InputAudioBitrate { get; set; }  
-
+        
+        /// <summary>
+        /// Битрейт аудио при загрузке
+        /// </summary>
+        public float InputAudioBitrate { get; set; }
     }
    
 }

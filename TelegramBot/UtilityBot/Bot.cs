@@ -9,77 +9,95 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
+
 
 namespace UtilityBot
 {
     public class Bot : BackgroundService
     {
-       
-            private ITelegramBotClient _telegramClient;
 
-            public Bot(ITelegramBotClient telegramClient)
+        private ITelegramBotClient _telegramClient;
+        // Контроллер обработки сообщения видов сообщений
+
+        private TextMessageController _textMessageController;
+        private InlineKeyboardController _inlineKeyboardController;
+
+        public Bot(ITelegramBotClient telegramClient, TextMessageController textMessageController, InlineKeyboardController inlineKeyboardController)
+        {
+
+
+            _telegramClient = telegramClient;
+            _textMessageController = textMessageController;
+            _inlineKeyboardController = inlineKeyboardController;   
+        }
+
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            _telegramClient.StartReceiving(
+                HandleUpdateAsync,
+                HandleErrorAsync,
+                new ReceiverOptions() { AllowedUpdates = { } }, // Здесь выбираем, какие обновления хотим получать. В данном случае разрешены все
+                cancellationToken: stoppingToken);
+
+            Console.WriteLine("Бот запущен");
+
+        }
+
+
+
+        async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        {
+            if (update.Type == UpdateType.CallbackQuery)
             {
-
-                // var telegramClient = new TelegramBotClient("7408197128:AAFtQ7bmx-G_F5GvBpn_XGAelq0Svqncs8g");
-
-                _telegramClient = telegramClient;
-
-            }
-
-
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-            {
-                _telegramClient.StartReceiving(
-                    HandleUpdateAsync,
-                    HandleErrorAsync,
-                    new ReceiverOptions() { AllowedUpdates = { } }, // Здесь выбираем, какие обновления хотим получать. В данном случае разрешены все
-                    cancellationToken: stoppingToken);
-
-                Console.WriteLine("Бот запущен");
-
-            }
-
-
-
-            async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-            {
-                //  Обрабатываем нажатия на кнопки  из Telegram Bot API: https://core.telegram.org/bots/api#callbackquery
-                if (update.Type == UpdateType.CallbackQuery)
-                    await _telegramClient.SendTextMessageAsync(update.Message.Chat.Id, $"Длина сообщения: {update.Message.Text.Length} знаков", cancellationToken: cancellationToken);
-              
-                if (update.Type == UpdateType.Message)
-
-               {
-                Console.WriteLine($"Получено сообщение {update.Message.Text}");
-                await _telegramClient.SendTextMessageAsync(update.Message.Chat.Id, $"Длина сообщения: {update.Message.Text.Length} знаков", cancellationToken: cancellationToken);
+                await _inlineKeyboardController.Handle(update.CallbackQuery, update, cancellationToken);
                 return;
-               }
-             
             }
-            //Обработчик ошибок
-            Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+            if (update.Type == UpdateType.Message)
             {
-                // Задаем сообщение об ошибке в зависимости от того, какая именно ошибка произошла
-                var errorMessage = exception switch
+                switch (update.Message!.Type)
                 {
-                    ApiRequestException apiRequestException
-                        => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-                    _ => exception.ToString()
-                };
 
-                // Выводим в консоль информацию об ошибке
-                Console.WriteLine(errorMessage);
+                    case MessageType.Text:
+                        await _textMessageController.Handle(update.Message, cancellationToken);
+                        return;
 
-                // Задержка перед повторным подключением
-                Console.WriteLine("Ожидаем 10 секунд перед повторным подключением.");
-                Thread.Sleep(10000);
-                return Task.CompletedTask;
+
+
+                }
+
+
+
+
 
             }
+            
+           
 
 
 
-          
+
+        }
+        //Обработчик ошибок
+        Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        {
+            // Задаем сообщение об ошибке в зависимости от того, какая именно ошибка произошла
+            var errorMessage = exception switch
+            {
+                ApiRequestException apiRequestException
+                    => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+                _ => exception.ToString()
+            };
+
+            // Выводим в консоль информацию об ошибке
+            Console.WriteLine(errorMessage);
+
+            // Задержка перед повторным подключением
+            Console.WriteLine("Ожидаем 10 секунд перед повторным подключением.");
+            Thread.Sleep(10000);
+            return Task.CompletedTask;
+
+        }
     }
 }
-

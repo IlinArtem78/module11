@@ -47,6 +47,12 @@ namespace TelegramVoiceBot.Configuration
             Console.WriteLine("Файл конвертирован");
 
             return "Конвертация успешно завершена";
+
+            //////
+            Console.WriteLine("Начинаем распознавание...");
+            var speechText = SpeechDetector.DetectSpeech(outputAudioPath, _appSettings.InputAudioBitrate, inputParam);
+            Console.WriteLine("Файл распознан.");
+            return speechText;
         }
     }
 }
