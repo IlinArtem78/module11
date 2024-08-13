@@ -10,6 +10,8 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Runtime;
+
 
 
 namespace UtilityBot
@@ -22,14 +24,17 @@ namespace UtilityBot
 
         private TextMessageController _textMessageController;
         private InlineKeyboardController _inlineKeyboardController;
+        
 
-        public Bot(ITelegramBotClient telegramClient, TextMessageController textMessageController, InlineKeyboardController inlineKeyboardController)
+        public Bot(ITelegramBotClient telegramClient, TextMessageController textMessageController, 
+            InlineKeyboardController inlineKeyboardController)
         {
 
 
             _telegramClient = telegramClient;
             _textMessageController = textMessageController;
             _inlineKeyboardController = inlineKeyboardController;   
+           
         }
 
 
@@ -51,7 +56,7 @@ namespace UtilityBot
         {
             if (update.Type == UpdateType.CallbackQuery)
             {
-                await _inlineKeyboardController.Handle(update.CallbackQuery, update, cancellationToken);
+                await _inlineKeyboardController.Handle(update.CallbackQuery, cancellationToken);
                 return;
             }
             if (update.Type == UpdateType.Message)
@@ -61,10 +66,13 @@ namespace UtilityBot
 
                     case MessageType.Text:
                         await _textMessageController.Handle(update.Message, cancellationToken);
+                       
                         return;
-
-
-
+                    
+                    default:
+                        Console.WriteLine("Тип сообщения по defualt и не выбран");
+                        await _telegramClient.SendTextMessageAsync(update.Message.Chat.Id, "Тип сообщения по defualt и не выбран"); 
+                    return;
                 }
 
 
@@ -72,11 +80,7 @@ namespace UtilityBot
 
 
             }
-            
            
-
-
-
 
         }
         //Обработчик ошибок
